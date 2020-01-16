@@ -1,0 +1,11 @@
+type Query {
+  HelloWorld: Response
+}
+
+type Mutation {
+  increment: Response
+}
+
+type Response {
+  response: String
+}
