@@ -36,9 +36,6 @@ services:
       MONGO_HOSTNAME: "mongo"
       MONGO_DBNAME: "brickhub"
       NUMBER_OF_PROCESSES: 4
-      S3_BUCKET_NAME: bh.tji.li
-      AWS_ACCESS_KEY_ID: AKIATY6O7PTOW7QMR55H
-      AWS_SECRET_ACCESS_KEY: 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
     depends_on:
       - mongo
     ports:
