@@ -8,8 +8,12 @@
     "test": "mocha -r ts-node/register test/*.ts"
   },
   "dependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/lodash": "^4.14.149",
     "@types/mongodb": "^3.3.14",
     "@types/mongoose": "^5.5.41",
+    "@types/node": "^13.7.7",
+    "console-stamp": "^0.2.9",
     "dotenv": "^8.2.0",
     "graphql-tools": "^4.0.6",
     "graphql-yoga": "^1.18.3",

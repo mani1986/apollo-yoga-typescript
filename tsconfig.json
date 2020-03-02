@@ -2,13 +2,27 @@
   "strictNullChecks": true,
   "strictPropertyInitializer": true,
   "compilerOptions": {
-    "target": "es6",
+    "target": "es5",
+    "lib": [
+      "dom",
+      "es2015",
+      "es2016.array.include"
+    ],
     "module": "commonjs",
     "outDir": "dist",
-    "sourceMap": true
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "allowJs": true,
+    // "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    // "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    // "resolveJsonModule": true,
+    // "isolatedModules": true,
+    // "noEmit": true,
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
   ],
   "exclude": [
     "node_modules",
