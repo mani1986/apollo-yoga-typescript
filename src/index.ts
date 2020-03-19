@@ -1,11 +1,12 @@
 import createServer from './server'
-import './lib/db'
+import boot from './boot'
 
 require("dotenv").config({ path: __dirname + '/../.env' });
 
+boot.start()
 const server = createServer()
 
-const corsOptions: object = {
+const corsOptions:object = {
     credentials: true,
     origin: process.env.APP_URL
 }

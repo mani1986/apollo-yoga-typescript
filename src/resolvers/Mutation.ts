@@ -1,13 +1,10 @@
-import Context from './Context';
-import ResolverMap from './ResolverMap';
+import _ from "lodash";
 
-let val = 0
+import Context from "./Context";
+import ResolverMap from "./ResolverMap";
+import AuthMutations from './AuthMutations';
 
 const Mutation: ResolverMap = {
-  increment (root: any, args: any, context: Context) {
-    val += 1
-
-    return { response: val }
-  }
-}
-export default Mutation
+  ...AuthMutations
+};
+export default Mutation;

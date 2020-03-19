@@ -1,11 +1,28 @@
-type Query {
-  HelloWorld: Response
-}
-
 type Mutation {
-  increment: Response
+  # Authentication
+  login (username: String!, password: String!): LoginMessage!
+  logout: ResponseMessage!
+  logoutAll: ResponseMessage!
+  setPassword(oldPassword:String!, newPassword:String!): ResponseMessage!
+  setPasswordFromToken(token:String!, newPassword:String!): ResponseMessage!
+  forgotPassword(username:String!): ResponseMessage
 }
 
-type Response {
-  response: String
+type Query {
+  currentUser: User
+}
+
+type LoginMessage {
+  token: String!
+  user: User!
+}
+
+type User {
+  id: String!
+  fullName: String!
+  email: String!
+}
+
+type ResponseMessage {
+  message: String!
 }

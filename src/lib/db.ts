@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const hostname = process.env.MONGO_HOSTNAME ? process.env.MONGO_HOSTNAME : 'localhost';
-const dbname = process.env.MONGO_DBNAME ? process.env.MONGO_DBNAME : 'brickhub';
+const dbname = process.env.MONGO_DBNAME ? process.env.MONGO_DBNAME : 'nobli';
 
 mongoose.set('useFindAndModify', true);
 

@@ -1,5 +1,8 @@
+import { IUserModel } from '../models/User';
+
 interface Context {
-  user: Object,
+  user: IUserModel,
+  token: String,
   db: Object
 }
 
