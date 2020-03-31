@@ -129,7 +129,7 @@ class auth {
   static async setPasswordFromToken(resetToken: String, newPassword: String) {
     const user = await UserModel.findOne({
       resetToken,
-      resetTokenExpiry: { $gte: Date.now() - PASSWORD_RESET_VALIDITY_MINUTES }
+      resetTokenExpiry: { $gte: moment().subtract(PASSWORD_RESET_VALIDITY_MINUTES, 'minutes').toDate() }
     });
 
     if (!user) {
