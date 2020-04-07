@@ -1,37 +1,37 @@
 import _ from "lodash";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
 import moment from "moment";
 import { randomBytes } from "crypto";
 import { promisify } from "util";
 
-import UserModel from "../models/User";
-import TokenModel, { IToken } from "../models/Token";
 import AuthenticationError from "../errors/AuthenticationError";
 import mail from "./mail";
+import { UserDocument, User, AuthToken, AuthTokenKind } from '../models/User';
 
-const SECRET = process.env.SECRET || "demo"; // @todo Change this
-const TOKEN_VALIDITY_MINUTES = process.env.TOKEN_VALIDITY_MINUTES || 180; // @todo Change this
+const SECRET = process.env.SECRET
+const TOKEN_VALIDITY_MINUTES = process.env.TOKEN_VALIDITY_MINUTES || 180;
 const PASSWORD_RESET_VALIDITY_MINUTES =
   parseInt(process.env.PASSWORD_RESET_VALIDITY_MINUTES) || 30;
 
 class auth {
-  static async login(username, password) {
-    const user = await UserModel.findOne({ email: username });
+  static async login(username:string, password:string) {
+    const user = await User.findOne({ email: username });
 
-    if (!user || !auth.verifyPassword(password, user.hashedPassword)) {
+    const res = await  user.comparePassword(password)
+
+    if (!res) {
       throw new AuthenticationError();
     }
 
     const token = await auth.createToken(user);
 
     return {
-      token: token.token,
-      user: _.pick(user, "id", "fullName", "email")
+      accessToken: token.accessToken,
+      user: _.pick(user, "id", "profile", "email")
     };
   }
 
-  static signToken(user) {
+  static signToken(user:UserDocument):string {
     const token = jwt.sign({ userId: user._id }, SECRET);
 
     return token;
@@ -43,19 +43,24 @@ class auth {
       .slice(len * -1);
   }
 
-  static async createToken(user): Promise<IToken> {
-    const token = this.signToken(user);
+  static async createToken(user:UserDocument): Promise<AuthToken> {
 
-    return await TokenModel.create({
-      userId: user._id,
-      token,
-      validUntil: moment().add(TOKEN_VALIDITY_MINUTES, "minutes")
-    });
+    let tokenObj:AuthToken = {
+      kind: AuthTokenKind.auth,
+      deviceId: null,
+      accessToken: this.signToken(user),
+      validUntil: moment().add(TOKEN_VALIDITY_MINUTES, "minutes").toDate()
+    }
+
+    user.tokens.push(tokenObj)
+    user.save()
+
+    return tokenObj
   }
 
-  static async createUser(fullName, email, hashedPassword) {
+  static async createUser(fullName:string, email:string, password:string) {
     try {
-      const user = await UserModel.create({ fullName, email, hashedPassword });
+      const user = await User.create({ profile: { fullName }, email, password });
 
       return user;
     } catch (error) {
@@ -67,35 +72,25 @@ class auth {
     }
   }
 
-  static async getUser(headerToken) {
-    let token;
+  static async getUser(headerToken:string) {
+    let token:any;
     try {
       token = jwt.verify(headerToken, SECRET);
       const user = await this.userQuery(token.userId);
 
-      return _.pick(user, ["id", "fullName", "email"]);
+      return _.pick(user, ["id", "profile", "email"]);
     } catch (e) {
       console.error(e);
       return null;
     }
   }
 
-  static verifyPassword(input, hashed) {
-    const res = bcrypt.compareSync(input, hashed);
-
-    return res;
+  static async userQuery(userId:string) {
+    return await User.findOne({ _id: userId });
   }
 
-  static async hashPassword(password) {
-    return bcrypt.hashSync(password, 10);
-  }
-
-  static async userQuery(userId) {
-    return await UserModel.findOne({ _id: userId });
-  }
-
-  static async requestReset(email: String) {
-    const user = await UserModel.findOne({ email });
+  static async requestReset(email:string) {
+    const user = await User.findOne({ email });
 
     if (!user) {
       // We don't tell the user that the email wasn't found. This could be logged. @todo Log
@@ -109,8 +104,8 @@ class auth {
       "minutes"
     );
 
-    user.resetToken = resetToken;
-    user.resetTokenExpiry = resetTokenExpiry.toDate();
+    user.passwordResetToken = resetToken;
+    user.passwordResetExpires = resetTokenExpiry.toDate();
     user.save();
 
     // Send email
@@ -126,19 +121,19 @@ class auth {
   }
 
   // @todo Log This?
-  static async setPasswordFromToken(resetToken: String, newPassword: String) {
-    const user = await UserModel.findOne({
-      resetToken,
-      resetTokenExpiry: { $gte: moment().subtract(PASSWORD_RESET_VALIDITY_MINUTES, 'minutes').toDate() }
+  static async setPasswordFromToken(passwordResetToken: string, newPassword: string) {
+    const user = await User.findOne({
+      passwordResetToken,
+      passwordResetExpires: { $gte: moment().subtract(PASSWORD_RESET_VALIDITY_MINUTES, 'minutes').toDate() }
     });
 
     if (!user) {
       throw new Error('invalid_token');
     }
 
-    user.hashedPassword = await this.hashPassword(newPassword)
-    user.resetToken = null
-    user.resetTokenExpiry = null
+    user.password = newPassword
+    user.passwordResetToken = undefined
+    user.passwordResetExpires = undefined
     user.save()
 
 

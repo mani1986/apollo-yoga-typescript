@@ -1,48 +1,97 @@
+import { Document, Schema, Model, model, Types } from "mongoose";
+import bcrypt from "bcrypt-nodejs";
+import crypto from "crypto";
 
-import { Document, Schema, Model, model, Types } from 'mongoose';
+export type UserDocument = Document & {
+  email: string;
+  password: string;
+  passwordResetToken: string;
+  passwordResetExpires: Date;
 
-export interface IUser {
-  fullName: String,
-  email: String,
-  hashedPassword: String,
-  emailVerified: Boolean,
-  dateActive: Date,
-  resetToken: String,
-  resetTokenExpiry: Date
+  facebook: string;
+  tokens: AuthToken[];
+
+  profile: {
+    fullName: string;
+  };
+
+  comparePassword: comparePasswordFunction;
+  gravatar: (size: number) => string;
+};
+
+type comparePasswordFunction = (candidatePassword: string) => Promise<boolean | Error>;
+
+export enum AuthTokenKind {
+  auth = 'auth'
 }
 
-export interface IUserModel extends IUser, Document {
+
+export interface AuthToken {
+  accessToken: string;
+  deviceId: string;
+  kind: AuthTokenKind;
+  validUntil: Date;
 }
 
-export const UserSchema = new Schema({
-  _id: {
-    type: Schema.Types.ObjectId,
-    default: function () {
-        return new Types.ObjectId()
+const userSchema = new Schema(
+  {
+    email: { type: String, unique: true },
+    password: String,
+    passwordResetToken: String,
+    passwordResetExpires: Date,
+
+    facebook: String,
+    twitter: String,
+    google: String,
+    tokens: Array,
+
+    profile: {
+      fullName: String,
+    },
+  },
+  { timestamps: true }
+);
+
+/**
+ * Password hash middleware.
+ */
+userSchema.pre("save", function save(next) {
+  const user = this as UserDocument;
+  if (!user.isModified("password")) {
+    return next();
+  }
+  bcrypt.genSalt(10, (err: any, salt: any) => {
+    if (err) {
+      return next(err);
     }
-  },
-  fullName: String,
-  email: {
-    type: String,
-    unique: true
-  },
-  hashedPassword: {
-    type: String,
-    expose: false
-  },
-  emailVerified: Boolean,
-  dateActive: Date,
-  resetToken: String,
-  resetTokenExpiry: Date
+    bcrypt.hash(user.password, salt, undefined, (err: Error, hash: string) => {
+      if (err) {
+        return next(err);
+      }
+      user.password = hash;
+      next();
+    });
+  });
 });
 
-// UserSchema.set('toObject', {
-//   transform: function(doc, ret, opt) {
-//       delete ret['hashedPassword']
-//       return ret
-//   }
-// })
+const comparePassword: comparePasswordFunction = async function (candidatePassword) {
+  return bcrypt.compareSync(
+    candidatePassword,
+    this.password,
+  );
+};
 
-const UserModel: Model<IUserModel> = model<IUserModel>('User', UserSchema);
+userSchema.methods.comparePassword = comparePassword;
 
-export default UserModel
+/**
+ * Helper method for getting user's gravatar.
+ */
+userSchema.methods.gravatar = function (size: number = 200) {
+  if (!this.email) {
+    return `https://gravatar.com/avatar/?s=${size}&d=retro`;
+  }
+  const md5 = crypto.createHash("md5").update(this.email).digest("hex");
+  return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
+};
+
+export const User = model<UserDocument>("User", userSchema);

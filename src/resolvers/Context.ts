@@ -1,9 +1,9 @@
-import { IUserModel } from '../models/User';
+import { UserDocument } from '../models/User';
 
 interface Context {
-  user: IUserModel,
-  token: String,
-  db: Object
+  user: UserDocument,
+  accessToken: string,
+  db: object
 }
 
 export default Context;

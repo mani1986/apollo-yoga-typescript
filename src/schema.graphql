@@ -13,14 +13,18 @@ type Query {
 }
 
 type LoginMessage {
-  token: String!
+  accessToken: String!
   user: User!
 }
 
 type User {
   id: String!
-  fullName: String!
   email: String!
+  profile: UserProfile!
+}
+
+type UserProfile {
+  fullName: String!
 }
 
 type ResponseMessage {

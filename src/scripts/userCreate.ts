@@ -9,15 +9,15 @@ const rl = readline.createInterface({
 });
 
 const userCreate = () => {
-  rl.question("Full name: ", function(fullName) {
-    rl.question("Email: ", async function(email) {
+  rl.question("Full name: ", (fullName:string) => {
+    rl.question("Email: ", async (email:string) => {
       const password = auth.getRandomPassword();
 
       try {
         const res = await auth.createUser(
           fullName,
           email,
-          await auth.hashPassword(password)
+          password
         );
 
         console.log(res)

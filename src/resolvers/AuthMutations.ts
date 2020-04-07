@@ -2,28 +2,29 @@ import _ from "lodash";
 
 import Context from "./Context";
 import ResolverMap from "./ResolverMap";
-import UserModel from "../models/User";
-import TokenModel from "../models/Token";
+import { User, AuthToken } from '../models/User';
 import auth from "../lib/auth";
 
 const AuthMutations: ResolverMap = {
   async login(parent, args, context: Context) {
-    return await auth.login(args.username, args.password)
+    return await auth.login(args.username, args.password);
   },
 
   async logout(parent, args, context: Context) {
-    await TokenModel.deleteOne({ token: context.token });
+    const index = context.user.tokens.map((i:AuthToken) => i.accessToken).indexOf(context.accessToken)
+    context.user.tokens.splice(1, index)
 
     return {
-      message: "Success"
+      message: "Success",
     };
   },
 
   async logoutAll(parent, args, context: Context) {
-    await TokenModel.deleteOne({ userId: context.user._id });
+    context.user.tokens = []
+    context.user.save()
 
     return {
-      message: "Success"
+      message: "Success",
     };
   },
 
@@ -32,31 +33,31 @@ const AuthMutations: ResolverMap = {
       throw new Error("Unauthorized");
     }
 
-    UserModel.updateOne(
+    User.updateOne(
       {
-        _id: context.user._id
+        _id: context.user._id,
       },
       {
-        hashedPassword: auth.hashPassword(args.newPassword)
+        password: args.newPassword,
       }
     );
 
     return {
-      message: "Success"
+      message: "Success",
     };
   },
 
   async setPasswordFromToken(parent, args) {
     return {
-      message: "Success"
+      message: "Success",
     };
   },
 
   async forgotPassword(parent, args) {
     return {
-      message: "Success"
+      message: "Success",
     };
-  }
+  },
 };
 
 export default AuthMutations;

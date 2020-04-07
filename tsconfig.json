@@ -1,28 +1,23 @@
 {
-  "strictNullChecks": true,
-  "strictPropertyInitializer": true,
   "compilerOptions": {
-    "target": "es5",
-    "lib": [
-      "dom",
-      "es2015",
-      "es2016.array.include"
-    ],
-    "module": "commonjs",
-    "outDir": "dist",
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "allowJs": true,
-    // "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
-    // "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node",
-    // "resolveJsonModule": true,
-    // "isolatedModules": true,
-    // "noEmit": true,
+      "module": "commonjs",
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "target": "es6",
+      "noImplicitAny": true,
+      "moduleResolution": "node",
+      "sourceMap": true,
+      "outDir": "dist",
+      "baseUrl": ".",
+      "paths": {
+          "*": [
+              "node_modules/*",
+              "src/types/*"
+          ]
+      }
   },
   "include": [
-    "src/**/*.ts",
+      "src/**/*"
   ],
   "exclude": [
     "node_modules",

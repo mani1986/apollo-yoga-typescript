@@ -1,4 +1,4 @@
-import nodemailer from "nodemailer";
+import nodemailer from 'nodemailer';
 
 const config = {
   host: process.env.MAIL_HOST,
@@ -12,7 +12,7 @@ const config = {
 const transporter = nodemailer.createTransport(config);
 
 class mail {
-  static async send(to, subject, html) {
+  static async send(to:string, subject:string, html:string) {
     let info = await transporter.sendMail({
       from: `"${process.env.MAIL_FROM_NAME} " <${process.env.MAIL_FROM_EMAIL}>`,
       to,
@@ -23,7 +23,7 @@ class mail {
     return info;
   }
 
-  static getSimpleEmail(text) {
+  static getSimpleEmail(text:string) {
     return `
       <div className="email" style="
         border: 1px solid black;
