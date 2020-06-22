@@ -34,7 +34,7 @@ class mail {
       ">
         <h2>Important Message</h2>
         <p>${text}</p>
-        <p>Nobli</p>
+        <p>Project</p>
       </div>
   `;
   }

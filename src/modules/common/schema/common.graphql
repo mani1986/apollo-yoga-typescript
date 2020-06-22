@@ -1,0 +1,18 @@
+# Responses
+type MessageResponse {
+  message: String!
+}
+
+type ImageResponse {
+  id: String!
+  location: String!
+}
+
+# Scalars
+scalar Date
+
+# Input
+input ImageInput {
+  id: String
+  location: String
+}

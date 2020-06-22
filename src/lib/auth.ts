@@ -6,7 +6,8 @@ import { promisify } from "util";
 
 import AuthenticationError from "../errors/AuthenticationError";
 import mail from "./mail";
-import { UserDocument, User, AuthToken, AuthTokenKind } from '../models/User';
+import { UserDocument, User } from '../models/User';
+import { UserRole, AuthToken, AuthTokenKind } from "@models";
 
 const SECRET = process.env.SECRET
 const TOKEN_VALIDITY_MINUTES = process.env.TOKEN_VALIDITY_MINUTES || 180;
@@ -46,7 +47,7 @@ class auth {
   static async createToken(user:UserDocument): Promise<AuthToken> {
 
     let tokenObj:AuthToken = {
-      kind: AuthTokenKind.auth,
+      kind: AuthTokenKind.Auth,
       deviceId: null,
       accessToken: this.signToken(user),
       validUntil: moment().add(TOKEN_VALIDITY_MINUTES, "minutes").toDate()
@@ -58,14 +59,14 @@ class auth {
     return tokenObj
   }
 
-  static async createUser(fullName:string, email:string, password:string) {
+  static async createUser(fullName: string, email: string, password: string, role: UserRole) {
     try {
-      const user = await User.create({ profile: { fullName }, email, password });
+      // const user = await User.create({ profile: { fullName }, email, password, role });
 
-      return user;
+      // return user;
     } catch (error) {
-      if (error.name === "MongoError" && error.code === 11000) {
-        throw new Error("user already exists");
+      if (error.name === 'MongoError' && error.code === 11000) {
+        throw new Error('user_already_exists');
       }
 
       throw error;

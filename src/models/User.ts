@@ -1,56 +1,48 @@
 import { Document, Schema, Model, model, Types } from "mongoose";
 import bcrypt from "bcrypt-nodejs";
 import crypto from "crypto";
+import { UserRole, UserDbObject } from '@models';
 
-export type UserDocument = Document & {
-  email: string;
-  password: string;
-  passwordResetToken: string;
-  passwordResetExpires: Date;
 
-  facebook: string;
-  tokens: AuthToken[];
-
-  profile: {
-    fullName: string;
-  };
-
+export type UserDocument = UserDbObject & Document & {
   comparePassword: comparePasswordFunction;
   gravatar: (size: number) => string;
-};
+}
 
 type comparePasswordFunction = (candidatePassword: string) => Promise<boolean | Error>;
 
-export enum AuthTokenKind {
-  auth = 'auth'
-}
-
-
-export interface AuthToken {
-  accessToken: string;
-  deviceId: string;
-  kind: AuthTokenKind;
-  validUntil: Date;
-}
-
-const userSchema = new Schema(
-  {
-    email: { type: String, unique: true },
-    password: String,
-    passwordResetToken: String,
-    passwordResetExpires: Date,
-
-    facebook: String,
-    twitter: String,
-    google: String,
-    tokens: Array,
-
-    profile: {
-      fullName: String,
+const userSchema = new Schema({
+  profile: {
+    fullName: {
+      type: String,
+      required: true
     },
   },
-  { timestamps: true }
-);
+
+  tokens: Array,
+
+  email: {
+    type: String,
+    unique: true
+  },
+
+  role: {
+    type: String,
+    required: true
+  },
+
+  emailVerified: Boolean,
+  dateActive: Date,
+
+  // Password stuff
+  password: {
+    type: String,
+    required: true,
+    expose: false
+  },
+  passwordResetToken: String,
+  passwordResetExpires: Date,
+}, { timestamps: true });
 
 /**
  * Password hash middleware.

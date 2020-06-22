@@ -1,0 +1,45 @@
+type Mutation {
+  updateUser(id:String!, input:UserInput!): UserResponse!
+  deleteUser(id:String!):MessageResponse!
+}
+
+type Query {
+  currentUser: UserResponse
+  getUsers:[UserResponse!]!
+
+  getStatus: StatusResponse!
+}
+
+# Responses
+type StatusResponse {
+  user: UserResponse!
+}
+
+type UserResponse {
+  id: String!
+  email: String!
+  profile: UserProfileResponse!
+  role: UserRole!
+}
+
+type UserProfileResponse {
+  fullName: String!
+}
+
+# Input
+input UserInput {
+  email: String!
+  profile: UserProfileInput!
+  role: UserRole!
+}
+
+input UserProfileInput {
+  fullName: String!
+}
+
+# Enums
+enum UserRole {
+  Manager
+  Personnel
+  Admin
+}

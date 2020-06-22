@@ -1,0 +1,15 @@
+type Mutation {
+  # Authentication
+  login (username: String!, password: String!): LoginResponse!
+  logout: MessageResponse!
+  logoutAll: MessageResponse!
+  setPassword(oldPassword:String!, newPassword:String!): MessageResponse!
+  setPasswordFromToken(token:String!, newPassword:String!): MessageResponse!
+  forgotPassword(username:String!): MessageResponse
+}
+
+# Responses
+type LoginResponse {
+  accessToken: String!
+  user: UserResponse!
+}
