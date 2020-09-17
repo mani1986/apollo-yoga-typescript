@@ -1,30 +1,6 @@
 version: '3.4'
 
 services:
-  nginx:
-    image: nginx:latest
-    restart: always
-    ports:
-      - 80:80
-      - 443:443
-    volumes:
-      - ./config/nginx.conf:/etc/nginx/nginx.conf
-      - certbot-etc:/etc/letsencrypt
-      - certbot-var:/var/lib/letsencrypt
-      - web-root:/var/www/html
-    links:
-      - api
-    depends_on:
-      - api
-  certbot:
-    image: certbot/certbot
-    volumes:
-      - certbot-etc:/etc/letsencrypt
-      - certbot-var:/var/lib/letsencrypt
-      - web-root:/var/www/html
-    depends_on:
-      - nginx
-    command: certonly --webroot --webroot-path=/var/www/html --force-renewal --email mani@tji.li --agree-tos --no-eff-email -d domain.com
   api:
     build:
       context: .
@@ -33,32 +9,7 @@ services:
         AWS_SECRET_ACCESS_KEY:
     restart: always
     environment:
-      MONGO_HOSTNAME: "mongo"
-      MONGO_DBNAME: "brickhub"
       NUMBER_OF_PROCESSES: 4
-    depends_on:
-      - mongo
     ports:
       - "8000:8000"
       - "4000:4000"
-  app:
-    image:
-    container_name: app
-    environment:
-      API: "https://api.domain.com"
-      DEFAULT_LANGUAGE: "nl"
-    ports:
-      - "3000:3000"
-  mongo:
-    image: mongo:latest
-    restart: always
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-
-volumes:
-  mongo_data: {}
-  certbot-etc:
-  certbot-var:
-  web-root:

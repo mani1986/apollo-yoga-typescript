@@ -49,6 +49,7 @@
     "graphql-toolkit": "^0.7.5",
     "graphql-tools": "^4.0.6",
     "graphql-yoga": "^1.18.3",
+    "json2html": "^0.0.8",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.24.0",
     "mongoose": "^5.8.7",
