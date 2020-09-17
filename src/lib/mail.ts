@@ -23,7 +23,7 @@ class mail {
     return info;
   }
 
-  static getSimpleEmail(text:string) {
+  static getSimpleEmail(text:any) {
     return `
       <div className="email" style="
         border: 1px solid black;
@@ -33,7 +33,7 @@ class mail {
         font-size: 20px;
       ">
         <h2>Important Message</h2>
-        <p>${text}</p>
+        <pre>${text}</pre>
         <p>Project</p>
       </div>
   `;
