@@ -1,14 +1,27 @@
-import { Document, Schema, Types, Model, model } from 'mongoose';
+import { User } from 'models/User'
+import { prop, getModelForClass, modelOptions, Ref } from '@typegoose/typegoose'
+import { Base } from '@typegoose/typegoose/lib/defaultClasses';
 
-export type LogDocument = Document & {
-  person: Types.ObjectId,
-  title: string
+
+@modelOptions({ options: { customName: 'logs' } })
+export class Log extends Base {
+  // @prop({ ref: 'Company', required: true })
+  // public company!: Ref<CompanyDocument>;
+
+  // @prop({ ref: 'Person' })
+  // public person?: Ref<PersonDocument>;
+
+  @prop({ ref: 'User' })
+  public user!: Ref<User>;
+
+  @prop({ })
+  public title?: string;
+
+  @prop({ required: true })
+  public type!: string;
+
+  @prop()
+  public data: any;
 }
 
-const logSchema = new Schema({
-  title: String,
-  user: String,
-}, { timestamps: true })
-
-
-export const Log:Model<LogDocument> = model<LogDocument>('Log', logSchema);
+export const LogModel = getModelForClass(Log, { schemaOptions: { timestamps: true } });

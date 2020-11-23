@@ -1,5 +1,5 @@
 {
-  "name": "apollo-yoga-typescript",
+  "name": "petersen-club--backend",
   "version": "1.0.0",
   "main": "src/index.ts",
   "license": "MIT",
@@ -12,13 +12,12 @@
     "dev:debug": "ts-node-dev --inspect=4321 -r tsconfig-paths/register --respawn --transpileOnly src/index.ts",
     "build": "tsc",
     "prod": "NODE_ENV=production PORT=5000 node dist/index.js",
-    "lint": "eslint --fix ./src/*",
-    "check-websites": "node  -r ts-node/register -r tsconfig-paths/register ./src/scripts/checkWebsites.ts",
     "test": "MONGO_DBNAME=project_test mocha --recursive -r tsconfig-paths/register -r ts-node/register -r source-map-support/register test/index.ts"
   },
   "dependencies": {
     "@graphql-codegen/typescript-mongodb": "^1.15.1",
     "@graphql-modules/core": "^0.7.17",
+    "@typegoose/typegoose": "^7.4.2",
     "@types/axios": "^0.14.0",
     "@types/bcrypt-nodejs": "^0.0.31",
     "@types/cheerio": "^0.22.21",

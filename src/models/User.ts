@@ -1,55 +1,33 @@
-import { Document, Schema, Model, model, Types } from "mongoose";
-import bcrypt from "bcrypt-nodejs";
-import crypto from "crypto";
-import { UserRole, UserDbObject } from '@models';
+import bcrypt from 'bcrypt-nodejs';
+import crypto from 'crypto';
+import moment from 'moment';
+import { UserRole, AuthTokenKind } from '../generated/models';
+import { prop, pre, getModelForClass, Ref, DocumentType } from '@typegoose/typegoose';
+import { Base } from '@typegoose/typegoose/lib/defaultClasses';
+import auth from 'lib/auth';
 
+class AuthToken {
+  @prop()
+  public accessToken: string
 
-export type UserDocument = UserDbObject & Document & {
-  comparePassword: comparePasswordFunction;
-  gravatar: (size: number) => string;
+  @prop()
+  public deviceId: string
+
+  @prop({ type: AuthTokenKind })
+  public kind: AuthTokenKind
+
+  @prop()
+  public validUntil: Date
 }
 
-type comparePasswordFunction = (candidatePassword: string) => Promise<boolean | Error>;
+class UserProfile {
+  @prop()
+  public fullName: string
+}
 
-const userSchema = new Schema({
-  profile: {
-    fullName: {
-      type: String,
-      required: true
-    },
-  },
-
-  tokens: Array,
-
-  email: {
-    type: String,
-    unique: true
-  },
-
-  role: {
-    type: String,
-    required: true
-  },
-
-  emailVerified: Boolean,
-  dateActive: Date,
-
-  // Password stuff
-  password: {
-    type: String,
-    required: true,
-    expose: false
-  },
-  passwordResetToken: String,
-  passwordResetExpires: Date,
-}, { timestamps: true });
-
-/**
- * Password hash middleware.
- */
-userSchema.pre("save", function save(next) {
-  const user = this as UserDocument;
-  if (!user.isModified("password")) {
+@pre<User>('save', function (next) {
+  const user = this as User;
+  if (!this.isModified('password')) {
     return next();
   }
   bcrypt.genSalt(10, (err: any, salt: any) => {
@@ -64,26 +42,63 @@ userSchema.pre("save", function save(next) {
       next();
     });
   });
-});
+})
 
-const comparePassword: comparePasswordFunction = async function (candidatePassword) {
-  return bcrypt.compareSync(
-    candidatePassword,
-    this.password,
-  );
-};
+export class User extends Base {
+  @prop({ required: true })
+  public email!: string;
 
-userSchema.methods.comparePassword = comparePassword;
+  @prop({ required: true })
+  public emailVerified: boolean = false;
 
-/**
- * Helper method for getting user's gravatar.
- */
-userSchema.methods.gravatar = function (size: number = 200) {
-  if (!this.email) {
-    return `https://gravatar.com/avatar/?s=${size}&d=retro`;
+  @prop({ required: true })
+  public password!: string;
+
+  @prop()
+  public passwordResetToken?: string;
+
+  @prop()
+  public passwordResetExpires?: Date;
+
+  @prop({ required: true })
+  public dateActive: Date = new Date();
+
+  @prop({ _id: false, required: true })
+  public profile!: UserProfile;
+
+  @prop({ type: String, enum: UserRole, required: true })
+  public role!: UserRole;
+
+  @prop()
+  public tokens: Array<AuthToken> = [];
+
+  public async comparePassword(this: DocumentType<User>, candidatePassword: string) {
+    return bcrypt.compareSync(candidatePassword, this.password);
   }
-  const md5 = crypto.createHash("md5").update(this.email).digest("hex");
-  return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
-};
 
-export const User = model<UserDocument>("User", userSchema);
+  public async gravatar(this: DocumentType<User>, size: number = 200) {
+    if (!this.email) {
+      return `https://gravatar.com/avatar/?s=${size}&d=retro`;
+    }
+    const md5 = crypto.createHash('md5').update(this.email).digest('hex');
+    return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
+  }
+
+  public async createToken(this: DocumentType<User>): Promise<AuthToken> {
+    const TOKEN_VALIDITY_MINUTES = process.env.TOKEN_VALIDITY_MINUTES || 180; // @todo Change this\
+
+    let tokenObj: AuthToken = {
+      kind: AuthTokenKind.Auth,
+      deviceId: null,
+      accessToken: auth.signToken(this),
+      validUntil: moment().add(TOKEN_VALIDITY_MINUTES, 'minutes').toDate(),
+    };
+
+    this.tokens.push(tokenObj);
+    await this.save();
+
+    return tokenObj;
+  }
+}
+
+export const UserModel = getModelForClass(User, { schemaOptions: { timestamps: true } });
