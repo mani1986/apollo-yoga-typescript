@@ -16,3 +16,8 @@ input ImageInput {
   id: String
   location: String
 }
+
+# Enums
+enum AuthTokenKind {
+  Auth
+}

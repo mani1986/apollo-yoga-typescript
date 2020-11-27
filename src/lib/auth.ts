@@ -1,41 +1,81 @@
-import _ from "lodash";
-import jwt from "jsonwebtoken";
-import moment from "moment";
-import { randomBytes } from "crypto";
-import { promisify } from "util";
+import _ from 'lodash';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt-nodejs';
+import moment from 'moment';
+import { randomBytes } from 'crypto';
+import { promisify } from 'util';
+import { User, UserModel } from '../models/User';
+import AuthenticationError from '../errors/AuthenticationError';
+import { UserRole } from '@models';
+import InvalidTokenError from 'errors/InvalidTokenError';
+import MailUtil from './utils/MailUtil';
 
-import AuthenticationError from "../errors/AuthenticationError";
-import mail from "./mail";
-import { UserDocument, User } from '../models/User';
-import { UserRole, AuthToken, AuthTokenKind } from "@models";
-
-const SECRET = process.env.SECRET
-const TOKEN_VALIDITY_MINUTES = process.env.TOKEN_VALIDITY_MINUTES || 180;
-const PASSWORD_RESET_VALIDITY_MINUTES =
-  parseInt(process.env.PASSWORD_RESET_VALIDITY_MINUTES) || 30;
+export const PASSWORD_RESET_VALIDITY_MINUTES = parseInt(process.env.PASSWORD_RESET_VALIDITY_MINUTES) || 30;
 
 class auth {
-  static async login(username:string, password:string) {
-    const user = await User.findOne({ email: username });
+  static async login(username: string, password: string) {
+    const user = await UserModel.findOne({ email: username });
 
-    const res = await  user.comparePassword(password)
+    if (!user) {
+      throw new AuthenticationError();
+    }
+
+    const res = await user.comparePassword(password);
 
     if (!res) {
       throw new AuthenticationError();
     }
 
-    const token = await auth.createToken(user);
+    const token = await user.createToken()
 
     return {
       accessToken: token.accessToken,
-      user: _.pick(user, "id", "profile", "email")
+      user,
     };
   }
 
-  static signToken(user:UserDocument):string {
-    const token = jwt.sign({ userId: user._id }, SECRET);
+  static async loginWithTokenAndSetPassword(token: string, newPassword: string) {
+    const user = await UserModel.findOne({ passwordResetToken: token });
+
+    if (!user || moment(user.passwordResetExpires).isAfter(moment())) {
+      throw new InvalidTokenError();
+    }
+
+    // @todo, Check if token is expired
+
+    user.passwordResetToken = null
+    user.passwordResetExpires = null
+    user.password = newPassword
+    user.save()
+
+    const tokenObj = await user.createToken();
+
+    return {
+      accessToken: tokenObj.accessToken,
+      user,
+    };
+  }
+
+  static signToken(user: User) {
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET);
 
     return token;
+  }
+
+  static async hashPassword(password: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      bcrypt.genSalt(10, (err: any, salt: any) => {
+        if (err) {
+          return reject(err);
+        }
+        bcrypt.hash(password, salt, undefined, (err: Error, hash: string) => {
+          if (err) {
+            return reject(err);
+          }
+          return resolve(hash);
+        });
+      });
+    });
   }
 
   static getRandomPassword(len = 8) {
@@ -44,26 +84,19 @@ class auth {
       .slice(len * -1);
   }
 
-  static async createToken(user:UserDocument): Promise<AuthToken> {
-
-    let tokenObj:AuthToken = {
-      kind: AuthTokenKind.Auth,
-      deviceId: null,
-      accessToken: this.signToken(user),
-      validUntil: moment().add(TOKEN_VALIDITY_MINUTES, "minutes").toDate()
-    }
-
-    user.tokens.push(tokenObj)
-    user.save()
-
-    return tokenObj
-  }
-
   static async createUser(fullName: string, email: string, password: string, role: UserRole) {
     try {
-      // const user = await User.create({ profile: { fullName }, email, password, role });
+      const user = await UserModel.create({
+        profile: { fullName },
+        email,
+        password,
+        role,
+        emailVerified: true,
+        dateActive: new Date(),
+        tokens: []
+      });
 
-      // return user;
+      return user;
     } catch (error) {
       if (error.name === 'MongoError' && error.code === 11000) {
         throw new Error('user_already_exists');
@@ -73,72 +106,82 @@ class auth {
     }
   }
 
-  static async getUser(headerToken:string) {
-    let token:any;
+  static async getUser(headerToken: string): Promise<User> {
+    if (!headerToken) {
+      return null
+    }
+
+    let headerTokenPart = headerToken.replace(/bearer/gi, '').trim()
+
+    if (!headerTokenPart) {
+      return null
+    }
+
+    let token: any;
     try {
-      token = jwt.verify(headerToken, SECRET);
+      token = jwt.verify(headerToken.replace(/bearer/gi, '').trim(), process.env.SECRET);
       const user = await this.userQuery(token.userId);
 
-      return _.pick(user, ["id", "profile", "email"]);
+      return user;
     } catch (e) {
       console.error(e);
       return null;
     }
   }
 
-  static async userQuery(userId:string) {
-    return await User.findOne({ _id: userId });
+  static async userQuery(userId: string): Promise<User> {
+    return await UserModel.findOne({ _id: userId });
   }
 
-  static async requestReset(email:string) {
-    const user = await User.findOne({ email });
+  static async getPasswordToken () {
+    const randomBytesPromisified = promisify(randomBytes);
+
+    return (await randomBytesPromisified(20)).toString('hex');
+  }
+
+  static async requestReset(email: string) {
+    const user = await UserModel.findOne({ email });
 
     if (!user) {
       // We don't tell the user that the email wasn't found. This could be logged. @todo Log
       return true;
     }
 
-    const randomBytesPromisified = promisify(randomBytes);
-    const resetToken = (await randomBytesPromisified(20)).toString("hex");
-    const resetTokenExpiry = moment().add(
-      PASSWORD_RESET_VALIDITY_MINUTES,
-      "minutes"
-    );
+    const resetToken = await auth.getPasswordToken()
+    const resetTokenExpiry = moment().add(PASSWORD_RESET_VALIDITY_MINUTES, 'minutes');
 
     user.passwordResetToken = resetToken;
     user.passwordResetExpires = resetTokenExpiry.toDate();
     user.save();
 
-    // Send email
-    mail.send(
-      email,
-      "Reset your password",
-      mail.getSimpleEmail(`
-        Your password reset token is here \n\n <a href="${process.env.FRONTEND_URL}/reset?resetToken=${resetToken}" >Click here to reset </a>
-      `)
-    );
+    MailUtil.sendPasswordRecovery(user)
 
     return true;
   }
 
   // @todo Log This?
-  static async setPasswordFromToken(passwordResetToken: string, newPassword: string) {
-    const user = await User.findOne({
+  static async setPasswordFromToken(passwordResetToken: string, newPassword: string):Promise<any> {
+    const user = await UserModel.findOne({
       passwordResetToken,
-      passwordResetExpires: { $gte: moment().subtract(PASSWORD_RESET_VALIDITY_MINUTES, 'minutes').toDate() }
+      passwordResetExpires: { $gte: moment().toDate() },
     });
 
     if (!user) {
       throw new Error('invalid_token');
     }
 
-    user.password = newPassword
-    user.passwordResetToken = undefined
-    user.passwordResetExpires = undefined
-    user.save()
+    user.password = newPassword;
+    user.emailVerified = true;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save();
 
+    const tokenObj = await user.createToken();
 
-    return this.signToken(user)
+    return {
+      accessToken: tokenObj.accessToken,
+      user,
+    };
   }
 }
 

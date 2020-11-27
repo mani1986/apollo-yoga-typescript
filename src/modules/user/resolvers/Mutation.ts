@@ -1,6 +1,6 @@
 import { UserRole, MutationResolvers, MutationUpdateUserArgs, MutationDeleteUserArgs, MessageResponse } from '@models';
 import { ModuleContext } from '@graphql-modules/core';
-import { User } from '../../../models/User';
+import { UserModel, User } from '../../../models/User';
 import { Types } from 'mongoose';
 
 export const Mutation: MutationResolvers = {
@@ -13,7 +13,7 @@ export const Mutation: MutationResolvers = {
       throw new Error('self_edit');
     }
 
-    const user = await User.findByIdAndUpdate(
+    const user = await UserModel.findByIdAndUpdate(
       { _id: args.id, company: context.user.company },
       { profile: args.input.profile, role: args.input.role, },
       { new: true }
@@ -27,7 +27,7 @@ export const Mutation: MutationResolvers = {
       throw new Error('unauthorized');
     }
 
-    await User.deleteOne({ company: context.user.company, _id: args.id });
+    await UserModel.deleteOne({ company: context.user.company, _id: args.id });
 
     return {
       message: 'success',

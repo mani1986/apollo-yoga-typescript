@@ -2,7 +2,7 @@ import { MutationResolvers, MutationLoginArgs, LoginResponse, MessageResponse } 
 import { ModuleContext } from "@graphql-modules/core";
 import auth from "lib/auth";
 import _ from 'lodash'
-import { User } from "models/User";
+import { UserModel } from "models/User";
 
 export const Mutation: MutationResolvers = {
   async login(parent:any, args:MutationLoginArgs):Promise<LoginResponse> {
@@ -35,7 +35,7 @@ export const Mutation: MutationResolvers = {
       throw new Error("unauthenticated");
     }
 
-    User.updateOne(
+    UserModel.updateOne(
       {
         _id: context.user._id
       },

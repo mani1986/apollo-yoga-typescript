@@ -1,6 +1,6 @@
 import { QueryResolvers, UserResponse, StatusResponse } from "@models";
 import { ModuleContext } from "@graphql-modules/core";
-import { User } from "models/User";
+import { UserModel } from "models/User";
 import _ from 'lodash'
 
 export const Query: QueryResolvers = {
@@ -17,7 +17,7 @@ export const Query: QueryResolvers = {
     args: any,
     context: ModuleContext,
   ): Promise<Array<any>> {
-    const users = await User.find({ company: context.user.company });
+    const users = await UserModel.find({ company: context.user.company });
 
     return users
   },

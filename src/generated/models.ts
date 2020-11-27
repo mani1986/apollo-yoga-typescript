@@ -31,37 +31,9 @@ export type ImageInput = {
   location?: Maybe<Scalars['String']>;
 };
 
-export type User = {
-  __typename?: 'User';
-  id?: Maybe<Scalars['String']>;
-  email: Scalars['String'];
-  emailVerified: Scalars['Boolean'];
-  dateActive: Scalars['Date'];
-  fullName?: Maybe<Scalars['String']>;
-  role: UserRole;
-  tokens: Array<Maybe<AuthToken>>;
-  password: Scalars['String'];
-  passwordResetToken?: Maybe<Scalars['String']>;
-  passwordResetExpires: Scalars['Date'];
-};
-
-export type AuthToken = {
-  __typename?: 'AuthToken';
-  accessToken: Scalars['String'];
-  deviceId: Scalars['String'];
-  kind: AuthTokenKind;
-  validUntil: Scalars['Date'];
-};
-
 export enum AuthTokenKind {
-  Auth = 'auth'
+  Auth = 'Auth'
 }
-
-export type Company = {
-  __typename?: 'Company';
-  id?: Maybe<Scalars['String']>;
-  name: Scalars['String'];
-};
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -239,11 +211,7 @@ export type ResolversTypes = {
   ImageResponse: ResolverTypeWrapper<ImageResponse>;
   Date: ResolverTypeWrapper<Scalars['Date']>;
   ImageInput: ImageInput;
-  User: ResolverTypeWrapper<User>;
-  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
-  AuthToken: ResolverTypeWrapper<AuthToken>;
   AuthTokenKind: AuthTokenKind;
-  Company: ResolverTypeWrapper<Company>;
   Mutation: ResolverTypeWrapper<{}>;
   Query: ResolverTypeWrapper<{}>;
   StatusResponse: ResolverTypeWrapper<StatusResponse>;
@@ -253,6 +221,7 @@ export type ResolversTypes = {
   UserProfileInput: UserProfileInput;
   UserRole: UserRole;
   LoginResponse: ResolverTypeWrapper<LoginResponse>;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
@@ -262,10 +231,6 @@ export type ResolversParentTypes = {
   ImageResponse: ImageResponse;
   Date: Scalars['Date'];
   ImageInput: ImageInput;
-  User: User;
-  Boolean: Scalars['Boolean'];
-  AuthToken: AuthToken;
-  Company: Company;
   Mutation: {};
   Query: {};
   StatusResponse: StatusResponse;
@@ -274,6 +239,7 @@ export type ResolversParentTypes = {
   UserInput: UserInput;
   UserProfileInput: UserProfileInput;
   LoginResponse: LoginResponse;
+  Boolean: Scalars['Boolean'];
 };
 
 export type MessageResponseResolvers<ContextType = ModuleContext, ParentType extends ResolversParentTypes['MessageResponse'] = ResolversParentTypes['MessageResponse']> = {
@@ -290,34 +256,6 @@ export type ImageResponseResolvers<ContextType = ModuleContext, ParentType exten
 export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
   name: 'Date';
 }
-
-export type UserResolvers<ContextType = ModuleContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
-  id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  emailVerified?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  dateActive?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
-  fullName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  role?: Resolver<ResolversTypes['UserRole'], ParentType, ContextType>;
-  tokens?: Resolver<Array<Maybe<ResolversTypes['AuthToken']>>, ParentType, ContextType>;
-  password?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  passwordResetToken?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  passwordResetExpires?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type AuthTokenResolvers<ContextType = ModuleContext, ParentType extends ResolversParentTypes['AuthToken'] = ResolversParentTypes['AuthToken']> = {
-  accessToken?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  deviceId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  kind?: Resolver<ResolversTypes['AuthTokenKind'], ParentType, ContextType>;
-  validUntil?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type CompanyResolvers<ContextType = ModuleContext, ParentType extends ResolversParentTypes['Company'] = ResolversParentTypes['Company']> = {
-  id?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
 
 export type MutationResolvers<ContextType = ModuleContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   updateUser?: Resolver<ResolversTypes['UserResponse'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id' | 'input'>>;
@@ -364,9 +302,6 @@ export type Resolvers<ContextType = ModuleContext> = {
   MessageResponse?: MessageResponseResolvers<ContextType>;
   ImageResponse?: ImageResponseResolvers<ContextType>;
   Date?: GraphQLScalarType;
-  User?: UserResolvers<ContextType>;
-  AuthToken?: AuthTokenResolvers<ContextType>;
-  Company?: CompanyResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   StatusResponse?: StatusResponseResolvers<ContextType>;

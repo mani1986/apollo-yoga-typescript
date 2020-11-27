@@ -2,7 +2,7 @@ import { expect, assert, should } from 'chai';
 import moment from 'moment'
 import auth from '../src/lib/auth';
 import AuthenticationError from '../src/errors/AuthenticationError';
-import { User } from '../src/models/User';
+import { UserModel } from '../src/models/User';
 
 describe('login', () => {
   it('should pass correct password', async () => {
@@ -20,7 +20,7 @@ describe('request password reset token', () => {
   it('should not work, wrong email', async () => {
     auth.requestReset('test@test.com')
 
-    const user = await User.findOne({ email: 'test@test.com' })
+    const user = await UserModel.findOne({ email: 'test@test.com' })
     console.log(user.passwordResetToken)
 
     expect(user.passwordResetToken).to.eq(undefined)
@@ -30,7 +30,7 @@ describe('request password reset token', () => {
   it('should work, email exists', async () => {
     auth.requestReset('test@test.com')
 
-    const user = await User.findOne({ email: 'test@test.com' })
+    const user = await UserModel.findOne({ email: 'test@test.com' })
 
     expect(user.passwordResetToken.length).to.eq(40)
     expect(moment(user.passwordResetExpires).format('L')).to.eq(moment().format('L'))
@@ -43,7 +43,7 @@ describe('change password', async () => {
   })
 
   it('reset success', async () => {
-    const user = await User.findOne({ email: 'test@test.com' })
+    const user = await UserModel.findOne({ email: 'test@test.com' })
     const token = await auth.setPasswordFromToken(user.passwordResetToken, 'hello')
 
     expect(token.length).to.eq(153)
