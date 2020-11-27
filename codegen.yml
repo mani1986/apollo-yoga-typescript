@@ -1,17 +1,18 @@
 overwrite: true
-schema: ./src/schema.ts
 require:
   - ts-node/register/transpile-only
   - tsconfig-paths/register
 generates:
-  src/generated/models.ts:
+  ./src/generated/models.d.ts:
+    schema: ./src/schema.ts
+    plugins:
+      - typescript-graphql-files-modules
+  ./src/generated/models.ts:
+    schema: ./src/schema.ts
     plugins:
       - add: /* tslint:ignore */
       - typescript
       - typescript-resolvers
       - typescript-operations
-      - typescript-mongodb
     config:
       contextType: "@graphql-modules/core#ModuleContext"
-      mappers:
-        User: UserDbObject

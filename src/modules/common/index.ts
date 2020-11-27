@@ -1,14 +1,14 @@
 import { GraphQLModule } from '@graphql-modules/core';
-import { loadSchemaFiles } from 'graphql-toolkit';
-import { DIRECTIVES } from '@graphql-codegen/typescript-mongodb';
 import _ from 'lodash'
+
+import { mergeTypeDefs } from '@graphql-tools/merge';
+import { loadFilesSync } from '@graphql-tools/load-files';
+
+const loadedFiles = loadFilesSync(`${__dirname}/schema/*.graphql`);
 
 export interface CommonModuleConfig {
 }
 
 export const CommonModule:any = new GraphQLModule<CommonModuleConfig, {}, {}>({
-  typeDefs: [
-    DIRECTIVES,
-    ...loadSchemaFiles(__dirname + '/schema/'),
-  ]
+  typeDefs: mergeTypeDefs([...loadedFiles]),
 });

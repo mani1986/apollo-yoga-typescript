@@ -15,7 +15,6 @@
     "test": "MONGO_DBNAME=project_test mocha --recursive -r tsconfig-paths/register -r ts-node/register -r source-map-support/register test/index.ts"
   },
   "dependencies": {
-    "@graphql-codegen/typescript-mongodb": "^1.15.1",
     "@graphql-modules/core": "^0.7.17",
     "@typegoose/typegoose": "^7.4.2",
     "@types/axios": "^0.14.0",
@@ -47,8 +46,8 @@
     "faker": "^4.1.0",
     "graphql-fields": "^2.0.3",
     "graphql-import-node": "^0.0.4",
-    "graphql-toolkit": "^0.7.5",
-    "graphql-tools": "^4.0.6",
+    "@graphql-tools/load-files": "^6.0.18",
+    "@graphql-tools/merge": "^6.0.18",
     "json2html": "^0.0.8",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.24.0",
@@ -59,12 +58,13 @@
     "tsconfig-paths": "^3.9.0"
   },
   "devDependencies": {
-    "@graphql-codegen/add": "^1.15.0",
-    "@graphql-codegen/cli": "^1.13.2",
-    "@graphql-codegen/introspection": "1.13.2",
-    "@graphql-codegen/typescript": "1.13.2",
-    "@graphql-codegen/typescript-operations": "^1.15.0",
-    "@graphql-codegen/typescript-resolvers": "1.13.2",
+    "@graphql-codegen/add": "^1.17",
+    "@graphql-codegen/cli": "^1.17",
+    "@graphql-codegen/introspection": "1.17",
+    "@graphql-codegen/typescript": "1.17",
+    "@graphql-codegen/typescript-graphql-files-modules": "^1.18.0",
+    "@graphql-codegen/typescript-operations": "^1.17",
+    "@graphql-codegen/typescript-resolvers": "1.17",
     "@types/chai": "^4.2.11",
     "@types/chai-as-promised": "^7.1.2",
     "@types/mocha": "^5.2.7",
