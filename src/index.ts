@@ -1,22 +1,19 @@
-import createServer from './server'
-import boot from './boot'
+import 'reflect-metadata';
+import App from './App'
 
-require("dotenv").config({ path: __dirname + '/../.env' });
+const corsOptions: object = {
+  credentials: true,
+  // origin: process.env.APP_URL
+  origin: '*',
+};
 
-boot.start()
-const server = createServer()
-
-const corsOptions:object = {
-    credentials: true,
-    origin: process.env.APP_URL
-}
-
-server.start(
-    {
-        cors: corsOptions,
-        playground: process.env.NODE_ENV === 'production' ? false : '/',
-    },
-    server => {
-		console.log(`Server started: ${server.port}`)
-    }
-)
+App.listen(
+  {
+    cors: corsOptions,
+    port: process.env.PORT || 4015,
+    playground: process.env.NODE_ENV === 'production' ? false : '/',
+  },
+  () => {
+    console.log(`Server started: ${process.env.PORT || 4015} on ${process.env.NODE_ENV}`);
+  }
+);
